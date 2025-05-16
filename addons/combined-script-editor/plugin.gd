@@ -1,9 +1,11 @@
 @tool
 extends EditorPlugin
 
+const config_path := ".godot/plugin_config.ini"
 var editor_main_screen: VBoxContainer
 var resize_panel: TextureRect
 var script_editor_size: Vector2 = Vector2.ZERO
+var config: Dictionary
 
 func _enter_tree() -> void:
 	editor_main_screen = EditorInterface.get_editor_main_screen()
@@ -20,7 +22,12 @@ func _enter_tree() -> void:
 	script_editor.get_child(0).get_child(0).add_child(resize_panel)
 	script_editor.get_child(0).get_child(0).move_child(resize_panel, 0)
 
-	script_editor_size = editor_main_screen.size / 2
+	config = load_config()
+	script_editor_size = config.get("script_editor_size", editor_main_screen.size / 2)
+
+func _exit_tree() -> void:
+	config["script_editor_size"] = script_editor_size
+	save_config()
 
 func combine_script_editor():
 	var _2d_editor_view: VBoxContainer = editor_main_screen.get_child(0)
@@ -69,3 +76,18 @@ func on_resize_panel_gui_input(event: InputEvent):
 			var drag_start_position = resize_panel.get_meta("drag_start_position")
 			script_editor_size -= event.relative
 			combine_script_editor()
+
+func load_config(section = "combined_script_editor") -> Dictionary:
+	var config_file := ConfigFile.new()
+	config_file.load(config_path)
+	var config = {}
+	if config_file.has_section(section):
+		for k in config_file.get_section_keys(section):
+			config[k] = config_file.get_value(section, k)
+	return config
+
+func save_config(section = "combined_script_editor"):
+	var config_file := ConfigFile.new()
+	for k in config:
+		config_file.set_value(section, k, config[k])
+	config_file.save(config_path)
