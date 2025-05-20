@@ -1,7 +1,6 @@
 class_name SceneNavigationEnhancer extends RefCounted
 
 var base_control: Control = EditorInterface.get_base_control()
-var editor_main_screen: VBoxContainer = EditorInterface.get_editor_main_screen()
 var script_editor: ScriptEditor = EditorInterface.get_script_editor()
 var editor_selection: EditorSelection = EditorInterface.get_selection()
 var scene_selector := OptionButton.new()
@@ -56,12 +55,6 @@ func load_scenes():
 				"name": scene_instance.name,
 				"class": scene_instance.get_class()
 			}
-
-func b(node: Node, indent = 0):
-	if node == editor_main_screen || true:
-		print("%%%ds" % (indent * 2) % "", node)
-	for c in node.get_children():
-		b(c, indent + 1)
 
 func get_files(path: String, ext: Variant = null) -> Array[String]:
 	var dir_access = DirAccess.open(path)
