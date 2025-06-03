@@ -12,7 +12,8 @@ func perform():
 	scene_selector.get_popup().id_pressed.connect(func(idx: int):
 		var tree_item = scene_selector.get_item_metadata(idx)
 		if tree_item != null:
-			EditorInterface.set_main_screen_editor(tree_item["editor_type"])
+			if tree_item.has("editor_type") && tree_item["editor_type"].length() > 0:
+				EditorInterface.set_main_screen_editor(tree_item["editor_type"])
 			EditorInterface.open_scene_from_path(tree_item["path"])
 	)
 	scene_selector.add_theme_font_override("font", editor_selector.get_child(0).get_theme_font("font"))
@@ -38,9 +39,7 @@ func init_scene_selector():
 		var title = scene_info["title"]
 		var indent = scene_info["indent"]
 		var cls = scene_info["class"]
-		var editor_type = ""
-		if scene_info.has("editor_type"):
-			editor_type = scene_info["editor_type"]
+		var editor_type = scene_info["editor_type"] if scene_info.has("editor_type") else ""
 		scene_selector.add_icon_item(base_control.get_theme_icon(cls, "EditorIcons"), title)
 		scene_selector.get_popup().set_item_indent(i, indent * 2)
 		scene_selector.set_item_disabled(i, is_dir)
