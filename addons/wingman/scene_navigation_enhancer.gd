@@ -12,6 +12,7 @@ func perform():
 	scene_selector.get_popup().id_pressed.connect(func(idx: int):
 		var tree_item = scene_selector.get_item_metadata(idx)
 		if tree_item != null:
+			EditorInterface.set_main_screen_editor(tree_item["editor_type"])
 			EditorInterface.open_scene_from_path(tree_item["path"])
 	)
 	scene_selector.add_theme_font_override("font", editor_selector.get_child(0).get_theme_font("font"))
@@ -28,19 +29,22 @@ func init_scene_selector():
 
 	var scene_file_tree := get_file_tree("res://", "tscn")
 	# tidy_scene_file_tree(scene_file_tree)
-	var scene_files = generate_scene_files(scene_file_tree)
+	var scenes_info = generate_scenes_info(scene_file_tree)
 	
-	for i in scene_files.size():
-		var scenes_file = scene_files[i]
-		var is_dir = scenes_file["type"] == "dir"
-		var path = scenes_file["path"]
-		var title = scenes_file["title"]
-		var indent = scenes_file["indent"]
-		var cls = scenes_file["class"]
+	for i in scenes_info.size():
+		var scene_info = scenes_info[i]
+		var is_dir = scene_info["type"] == "dir"
+		var path = scene_info["path"]
+		var title = scene_info["title"]
+		var indent = scene_info["indent"]
+		var cls = scene_info["class"]
+		var editor_type = ""
+		if scene_info.has("editor_type"):
+			editor_type = scene_info["editor_type"]
 		scene_selector.add_icon_item(base_control.get_theme_icon(cls, "EditorIcons"), title)
 		scene_selector.get_popup().set_item_indent(i, indent * 2)
 		scene_selector.set_item_disabled(i, is_dir)
-		scene_selector.set_item_metadata(i, {"path": path})
+		scene_selector.set_item_metadata(i, {"path": path, "editor_type": editor_type})
 		scene_selector.set_item_tooltip(i, path)
 
 	for i in scene_selector.item_count:
@@ -48,38 +52,39 @@ func init_scene_selector():
 
 	if EditorInterface.get_edited_scene_root():
 		var edited_scene_file = EditorInterface.get_edited_scene_root().scene_file_path
-		for i in scene_files.size():
-			if edited_scene_file == scene_files[i]["path"]:
+		for i in scenes_info.size():
+			if edited_scene_file == scenes_info[i]["path"]:
 				scene_selector.selected = i
 	else:
 		scene_selector.selected = -1
 
-func generate_scene_files(scene_file_tree: Dictionary) -> Array:
-	var scene_files = []
+func generate_scenes_info(scene_file_tree: Dictionary) -> Array:
+	var scenes_info = []
 	var dir_path = scene_file_tree["path"]
 	var dir_indent = dir_path.split("/").size() - 3
 	var dir_title = dir_path
 	if dir_title != "res://":
 		dir_title = (dir_title.split("/") as Array).pop_back()
 		dir_indent += 1
-	scene_files.push_back({"type": "dir", "path": scene_file_tree["path"], "title": dir_title, "indent": dir_indent, "class": "Folder"})
+	scenes_info.push_back({"type": "dir", "path": scene_file_tree["path"], "title": dir_title, "indent": dir_indent, "class": "Folder"})
 	
 	if scene_file_tree.has("directories"):
 		for directory in scene_file_tree["directories"]:
 			var directory_path = directory["path"]
-			scene_files.append_array(generate_scene_files(directory))
+			scenes_info.append_array(generate_scenes_info(directory))
 
 	if scene_file_tree.has("files"):
 		for file_path in scene_file_tree["files"]:
 			var file_indent = file_path.split("/").size() - 2
 			if !scenes_instantiate.has(file_path):
 				var scene_instance = (ResourceLoader.load(file_path) as PackedScene).instantiate()
-				scenes_instantiate[file_path] = {"title": scene_instance.name, "class": scene_instance.get_class()}
-			var file_title = scenes_instantiate[file_path]["title"]
-			var cls = scenes_instantiate[file_path]["class"]
-			scene_files.push_back({"type": "file", "path": file_path, "title": file_title, "indent": file_indent, "class": cls})
+				var cls = scene_instance.get_class()
+				var editor_type = "3D" if cls is Node3D else "2D"
+				scenes_instantiate[file_path] = {"title": scene_instance.name, "class": cls, "editor_type": editor_type}
+			var info = {"type": "file", "path": file_path, "indent": file_indent}.merged(scenes_instantiate[file_path])
+			scenes_info.push_back(info)
 
-	return scene_files
+	return scenes_info
 
 func tidy_scene_file_tree(scene_file_tree: Dictionary):
 	scene_file_tree.erase("allFiles")
