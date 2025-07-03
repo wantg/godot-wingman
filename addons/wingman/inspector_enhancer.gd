@@ -9,6 +9,7 @@ func perform():
 	# add Expand Modified only Button
 	var property_filter_bar: HBoxContainer = get_inspector_property_filter_bar()
 	var property_filter_button = property_filter_bar.get_children().back() as MenuButton
+	
 	var expand_modified_only_button := Button.new()
 	expand_modified_only_button.name = "expand_modified_only_button"
 	expand_modified_only_button.flat = true
@@ -16,12 +17,21 @@ func perform():
 	expand_modified_only_button.focus_mode = Control.FocusMode.FOCUS_NONE
 	expand_modified_only_button.tooltip_text = "Expand Non-Default only"
 	expand_modified_only_button.disabled = property_filter_button.disabled
-	expand_modified_only_button.pressed.connect(func():
-		var popup_menu: PopupMenu = property_filter_button.get_popup()
-		popup_menu.id_pressed.emit(popup_menu.get_item_id(1))
-		popup_menu.id_pressed.emit(popup_menu.get_item_id(2))
-	)
+	expand_modified_only_button.pressed.connect(show_modified_only)
 	property_filter_button.add_sibling(expand_modified_only_button)
+	
+	inspector.gui_input.connect(func(event: InputEvent):
+		if event is InputEventMouseButton:
+			if event.button_mask == MouseButtonMask.MOUSE_BUTTON_MASK_MIDDLE:
+				show_modified_only()
+	)
+	
+func show_modified_only():
+	var property_filter_bar: HBoxContainer = get_inspector_property_filter_bar()
+	var property_filter_button = property_filter_bar.get_children()[-2]
+	var popup_menu: PopupMenu = property_filter_button.get_popup()
+	popup_menu.id_pressed.emit(popup_menu.get_item_id(1))
+	popup_menu.id_pressed.emit(popup_menu.get_item_id(2))
 
 func on_inspector_edited_object_changed():
 	# Expand Modified only Button disable or not
