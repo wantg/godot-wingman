@@ -1,6 +1,7 @@
 class_name SceneNavigationEnhancer extends RefCounted
 
 var base_control: Control = EditorInterface.get_base_control()
+var file_system_dock: FileSystemDock = EditorInterface.get_file_system_dock()
 var script_editor: ScriptEditor = EditorInterface.get_script_editor()
 var editor_selection: EditorSelection = EditorInterface.get_selection()
 var scene_selector := OptionButton.new()
@@ -15,6 +16,7 @@ func perform():
 			if tree_item.has("editor_type") && tree_item["editor_type"].length() > 0:
 				EditorInterface.set_main_screen_editor(tree_item["editor_type"])
 			EditorInterface.open_scene_from_path(tree_item["path"])
+			file_system_dock.navigate_to_path(tree_item["path"])
 	)
 	scene_selector.add_theme_font_override("font", editor_selector.get_child(0).get_theme_font("font"))
 	scene_selector.add_theme_font_size_override("font_size", editor_selector.get_child(0).get_theme_font_size("font_size"))
