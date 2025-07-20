@@ -79,9 +79,11 @@ func generate_scenes_info(scene_file_tree: Dictionary) -> Array:
 			var file_indent = file_path.split("/").size() - 2
 			if !scenes_instantiate.has(file_path):
 				var scene_instance = (ResourceLoader.load(file_path) as PackedScene).instantiate()
-				var cls = scene_instance.get_class()
-				var editor_type = "3D" if cls is Node3D else "2D"
-				scenes_instantiate[file_path] = {"title": scene_instance.name, "class": cls, "editor_type": editor_type}
+				var scene_class = scene_instance.get_class()
+				var scene_name = scene_instance.name
+				scene_instance.queue_free()
+				var editor_type = "3D" if scene_class is Node3D else "2D"
+				scenes_instantiate[file_path] = {"title": scene_name, "class": scene_class, "editor_type": editor_type}
 			var info = {"type": "file", "path": file_path, "indent": file_indent}.merged(scenes_instantiate[file_path])
 			scenes_info.push_back(info)
 
