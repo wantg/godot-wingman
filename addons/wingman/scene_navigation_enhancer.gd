@@ -26,6 +26,7 @@ func perform():
 	editor_selector.move_child(scene_selector, 0)
 
 	editor_selection.selection_changed.connect(init_scene_selector)
+	init_scene_selector()
 
 func init_scene_selector():
 	scene_selector.clear()
