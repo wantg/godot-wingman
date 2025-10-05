@@ -34,6 +34,14 @@ func show_modified_only():
 	popup_menu.id_pressed.emit(popup_menu.get_item_id(2))
 
 func on_inspector_edited_object_changed():
+	# auto show AnimationNodeStateMachineTransition property
+	if inspector.get_edited_object() is AnimationNodeStateMachineTransition:
+		var sections: Array[Node] = inspector.find_children("*", "EditorInspectorSection", true, false)
+		if sections.size() > 0:
+			sections[0].unfold()
+		if sections.size() > 1:
+			sections[1].unfold()
+	
 	# Expand Modified only Button disable or not
 	var property_filter_bar: HBoxContainer = get_inspector_property_filter_bar()
 	var property_filter_button = property_filter_bar.get_children()[-2]
