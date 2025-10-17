@@ -83,7 +83,7 @@ func generate_scenes_info(scene_file_tree: Dictionary) -> Array:
 				var scene_class = scene_instance.get_class()
 				var scene_name = scene_instance.name
 				scene_instance.queue_free()
-				var editor_type = "3D" if scene_class is Node3D else "2D"
+				var editor_type = "3D" if scene_instance is Node3D else "2D"
 				scenes_instantiate[file_path] = {"title": scene_name, "class": scene_class, "editor_type": editor_type}
 			var info = {"type": "file", "path": file_path, "indent": file_indent}.merged(scenes_instantiate[file_path])
 			scenes_info.push_back(info)
