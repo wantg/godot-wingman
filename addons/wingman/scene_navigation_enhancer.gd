@@ -35,16 +35,17 @@ func init_scene_selector():
 	# tidy_scene_file_tree(scene_file_tree)
 	var scenes_info = generate_scenes_info(scene_file_tree)
 	
+	scenes_info.remove_at(0)
 	for i in scenes_info.size():
 		var scene_info = scenes_info[i]
-		var is_dir = scene_info["type"] == "dir"
-		var path = scene_info["path"]
-		var title = scene_info["title"]
-		var indent = scene_info["indent"]
-		var cls = scene_info["class"]
+		var is_dir: bool = scene_info["type"] == "dir"
+		var path: String = scene_info["path"]
+		var title: String = scene_info["title"]
+		var indent: int = scene_info["indent"]
+		var cls: String = scene_info["class"]
 		var editor_type = scene_info["editor_type"] if scene_info.has("editor_type") else ""
-		scene_selector.add_icon_item(base_control.get_theme_icon(cls, "EditorIcons"), title)
-		scene_selector.get_popup().set_item_indent(i, indent * 2)
+		scene_selector.add_icon_item(base_control.get_theme_icon(cls, "EditorIcons"), path.trim_prefix("res://").get_file())
+		scene_selector.get_popup().set_item_indent(i, (indent - 1) * 2)
 		scene_selector.set_item_disabled(i, is_dir)
 		scene_selector.set_item_metadata(i, {"path": path, "editor_type": editor_type})
 		scene_selector.set_item_tooltip(i, path)
