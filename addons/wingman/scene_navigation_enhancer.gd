@@ -18,6 +18,7 @@ func perform():
 			EditorInterface.open_scene_from_path(tree_item["path"])
 			file_system_dock.navigate_to_path(tree_item["path"])
 	)
+	scene_selector.name = "scene_selector"
 	scene_selector.add_theme_font_override("font", editor_selector.get_child(0).get_theme_font("font"))
 	scene_selector.add_theme_font_size_override("font_size", editor_selector.get_child(0).get_theme_font_size("font_size"))
 	scene_selector.get_popup().add_theme_color_override("font_disabled_color", Color.WHITE)
@@ -120,3 +121,8 @@ func get_file_tree(path: String, includes_ext: Variant = null) -> Dictionary:
 			all_files.append(file_path)
 	
 	return {"path": path, "directories": directories, "files": files, "allFiles": all_files}
+
+func disable():
+	var editor_selector := base_control.get_child(0).get_child(0).get_child(2)
+	if editor_selector.get_child(0).name == "scene_selector":
+		editor_selector.get_child(0).queue_free()

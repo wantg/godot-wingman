@@ -9,4 +9,5 @@ func _enter_tree() -> void:
 	scene_navigation_enhancer.perform()
 
 func _exit_tree() -> void:
-	pass
+	inspector_enhancer.disable()
+	scene_navigation_enhancer.disable()
