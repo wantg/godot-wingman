@@ -79,6 +79,8 @@ func generate_scenes_info(scene_file_tree: Dictionary) -> Array:
 		for file_path in scene_file_tree["files"]:
 			var file_indent = file_path.split("/").size() - 2
 			if !scenes_instantiate.has(file_path):
+				if (ResourceLoader.get_dependencies(file_path) as Array).filter(func(p): return p.ends_with(".cs")).size() > 0 && !OS.has_feature("dotnet"):
+					continue
 				var scene_instance = (ResourceLoader.load(file_path) as PackedScene).instantiate()
 				var scene_class = scene_instance.get_class()
 				var scene_name = scene_instance.name
