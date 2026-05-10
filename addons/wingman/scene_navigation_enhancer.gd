@@ -4,7 +4,7 @@ var base_control: Control = EditorInterface.get_base_control()
 var script_editor: ScriptEditor = EditorInterface.get_script_editor()
 var editor_selection: EditorSelection = EditorInterface.get_selection()
 var scene_selector := OptionButton.new()
-var scenes_instantiate = {}
+var scenes_dict = {}
 
 func perform():
 	#add Scene selector
@@ -43,11 +43,11 @@ func init_scene_selector():
 		var indent: int = scene_info["indent"]
 		var cls: String = scene_info["class"]
 		var editor_type = scene_info["editor_type"] if scene_info.has("editor_type") else ""
-		scene_selector.add_icon_item(base_control.get_theme_icon(cls, "EditorIcons"), path.trim_prefix("res://").get_file())
+		scene_selector.add_icon_item(base_control.get_theme_icon(cls, "EditorIcons"), title)
 		scene_selector.get_popup().set_item_indent(i, (indent - 1) * 2)
 		scene_selector.set_item_disabled(i, is_dir)
 		scene_selector.set_item_metadata(i, {"path": path, "editor_type": editor_type})
-		scene_selector.set_item_tooltip(i, path)
+		scene_selector.set_item_tooltip(i, path.get_file())
 
 	for i in scene_selector.item_count:
 		scene_selector.get_popup().set_item_as_radio_checkable(i, false)
@@ -78,16 +78,18 @@ func generate_scenes_info(scene_file_tree: Dictionary) -> Array:
 	if scene_file_tree.has("files"):
 		for file_path in scene_file_tree["files"]:
 			var file_indent = file_path.split("/").size() - 2
-			if !scenes_instantiate.has(file_path):
+			if !scenes_dict.has(file_path):
 				if (ResourceLoader.get_dependencies(file_path) as Array).filter(func(p): return p.ends_with(".cs")).size() > 0 && !OS.has_feature("dotnet"):
 					continue
-				var scene_instance = (ResourceLoader.load(file_path) as PackedScene).instantiate()
-				var scene_class = scene_instance.get_class()
-				var scene_name = scene_instance.name
-				scene_instance.queue_free()
-				var editor_type = "3D" if scene_instance is Node3D else "2D"
-				scenes_instantiate[file_path] = {"title": scene_name, "class": scene_class, "editor_type": editor_type}
-			var info = {"type": "file", "path": file_path, "indent": file_indent}.merged(scenes_instantiate[file_path])
+				var scene: PackedScene = ResourceLoader.load(file_path)
+				var sceneState: SceneState = scene.get_state()
+				while sceneState.get_base_scene_state() != null:
+					sceneState = sceneState.get_base_scene_state()
+				var scene_class = sceneState.get_node_type(0)
+				var scene_name = sceneState.get_node_name(0)
+				var editor_type = "3D" if ClassDB.is_parent_class(scene_class, "Node3D") else "2D"
+				scenes_dict[file_path] = {"title": scene_name, "class": scene_class, "editor_type": editor_type}
+			var info = {"type": "file", "path": file_path, "indent": file_indent}.merged(scenes_dict[file_path])
 			scenes_info.push_back(info)
 
 	return scenes_info
